@@ -10,6 +10,9 @@ function Navbar() {
             Team Generator
           </Link>
           <div className="space-x-4">
+            <Link to="/teams" className="hover:text-blue-200">
+              Teams
+            </Link>
             <Link to="/players" className="hover:text-blue-200">
               Players
             </Link>

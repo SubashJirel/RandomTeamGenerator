@@ -7,6 +7,7 @@ import {
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import PlayerForm from "./components/player/PlayerForm";
 import PlayerList from "./components/player/PlayerList";
+import TeamList from "./components/team/TeamList";
 import Navbar from "./components/Navbar";
 import TeamGenerator from "./components/team/TeamGenerator";
 
@@ -24,6 +25,7 @@ function App() {
               <Route path="/players" element={<PlayerList />} />
               <Route path="/players/new" element={<PlayerForm />} />
               <Route path="/players/:groupId" element={<PlayerList />} />
+              <Route path="/teams" element={<TeamList />} />
               <Route path="/generate/:groupId" element={<TeamGenerator />} />
             </Routes>
           </div>
