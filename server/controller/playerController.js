@@ -1,4 +1,4 @@
-const Player = require("../models/players"); // Updated to match the filename
+const Player = require("../models/players");
 
 // Get all players
 exports.getPlayers = async (req, res) => {
