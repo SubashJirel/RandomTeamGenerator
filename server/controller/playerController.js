@@ -50,7 +50,7 @@ exports.createPlayer = async (req, res) => {
 //create multiple players
 exports.createPlayers = async (req, res) => {
   try {
-    const players = req.body;
+    const players = req.body.players;
 
     if (!Array.isArray(players) || players.length === 0) {
       return res
