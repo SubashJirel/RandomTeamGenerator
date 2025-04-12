@@ -124,3 +124,85 @@ exports.generateTeams = async (req, res) => {
     res.status(400).json({ message: err.message });
   }
 };
+
+// Update generated team
+exports.generateTeamsFromGroup = async (req, res) => {
+  try {
+    const { groupId, numberOfTeams = 2, title = "Match Day Teams" } = req.body;
+
+    if (!groupId) {
+      return res.status(400).json({ message: "Group ID is required" });
+    }
+
+    const players = await Player.find({ groupId });
+
+    if (players.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No players found for this group" });
+    }
+
+    // Sort players by skill descending
+    const sortedPlayers = [...players].sort((a, b) => b.skill - a.skill);
+
+    // Initialize empty teams
+    const teams = Array.from({ length: numberOfTeams }, () => []);
+
+    // Zigzag distribute
+    let direction = 1;
+    let teamIndex = 0;
+    for (const player of sortedPlayers) {
+      teams[teamIndex].push(player);
+      teamIndex += direction;
+
+      if (teamIndex === numberOfTeams) {
+        teamIndex = numberOfTeams - 1;
+        direction = -1;
+      } else if (teamIndex === -1) {
+        teamIndex = 0;
+        direction = 1;
+      }
+    }
+
+    // Format teams for storage in GeneratedTeam
+    const formattedTeams = await Promise.all(
+      teams.map(async (teamPlayers, index) => {
+        const teamDoc = new Team({
+          name: `Team ${index + 1}`,
+          players: teamPlayers.map((p) => p._id),
+        });
+        const savedTeam = await teamDoc.save();
+
+        const totalSkill = teamPlayers.reduce((sum, p) => sum + p.skill, 0);
+        const avgSkill = teamPlayers.length
+          ? (totalSkill / teamPlayers.length).toFixed(2)
+          : 0;
+
+        return {
+          teamId: savedTeam._id,
+          teamName: savedTeam.name,
+          players: teamPlayers.map((p) => ({
+            playerId: p._id,
+            playerName: p.name,
+            skill: p.skill,
+          })),
+          averageSkill: parseFloat(avgSkill),
+        };
+      })
+    );
+
+    const publicLink = crypto.randomBytes(8).toString("hex");
+
+    const generatedTeam = new GeneratedTeam({
+      title,
+      teams: formattedTeams,
+      publicLink,
+    });
+
+    const savedGeneratedTeam = await generatedTeam.save();
+    res.status(201).json(savedGeneratedTeam);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error generating teams" });
+  }
+};

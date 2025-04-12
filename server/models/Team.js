@@ -6,6 +6,12 @@ const TeamSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  players: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Player",
+    },
+  ],
   createdAt: {
     type: Date,
     default: Date.now,

@@ -1,3 +1,4 @@
+const { v4: uuidv4 } = require("uuid");
 const Player = require("../models/players");
 
 // Get all players
@@ -43,6 +44,52 @@ exports.createPlayer = async (req, res) => {
     res.status(201).json(savedPlayer);
   } catch (err) {
     res.status(400).json({ message: err.message });
+  }
+};
+
+//create multiple players
+exports.createPlayers = async (req, res) => {
+  try {
+    const players = req.body;
+
+    if (!Array.isArray(players) || players.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "Please provide an array of players" });
+    }
+
+    const groupId = uuidv4();
+
+    const newPlayers = players.map((p) => ({
+      name: p.name,
+      skill: parseInt(p.skill),
+      groupId,
+    }));
+
+    const savedPlayers = await Player.insertMany(newPlayers);
+
+    res.status(201).json({ groupId, players: savedPlayers });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+//Retrieve Players by Group
+exports.getPlayersByGroup = async (req, res) => {
+  try {
+    const { groupId } = req.params;
+
+    const players = await Player.find({ groupId });
+
+    if (players.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No players found for this group" });
+    }
+
+    res.json(players);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 

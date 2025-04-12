@@ -12,6 +12,10 @@ const PlayerSchema = new mongoose.Schema({
     min: 1,
     max: 5,
   },
+  groupId: {
+    type: String,
+    required: true,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
