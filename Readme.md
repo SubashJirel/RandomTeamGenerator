@@ -2,6 +2,10 @@
 
 A full-stack web application that helps organize players into balanced teams based on skill levels. Perfect for sports events, gaming tournaments, or any activity requiring fair team distribution.
 
+## 🔗 Live Site
+
+Check out the live site here: [Random Team Generator](https://random-team-generator-blue.vercel.app/players)
+
 ## Features
 
 - **Player Management**
