@@ -128,10 +128,10 @@ exports.generateTeams = async (req, res) => {
 // Update generated team
 exports.generateTeamsFromGroup = async (req, res) => {
   try {
-    const { groupId, numberOfTeams = 2, title = "Match Day Teams" } = req.body;
+    const { groupId, teams, title = "Match Day Teams" } = req.body;
 
-    if (!groupId) {
-      return res.status(400).json({ message: "Group ID is required" });
+    if (!groupId || !teams || !Array.isArray(teams)) {
+      return res.status(400).json({ message: "Invalid input data" });
     }
 
     const players = await Player.find({ groupId });
@@ -145,18 +145,21 @@ exports.generateTeamsFromGroup = async (req, res) => {
     // Sort players by skill descending
     const sortedPlayers = [...players].sort((a, b) => b.skill - a.skill);
 
-    // Initialize empty teams
-    const teams = Array.from({ length: numberOfTeams }, () => []);
+    // Initialize teams with provided names
+    const formattedTeams = teams.map((team) => ({
+      players: [],
+      name: team.name,
+    }));
 
-    // Zigzag distribute
+    // Distribute players using zigzag pattern
     let direction = 1;
     let teamIndex = 0;
     for (const player of sortedPlayers) {
-      teams[teamIndex].push(player);
+      formattedTeams[teamIndex].players.push(player);
       teamIndex += direction;
 
-      if (teamIndex === numberOfTeams) {
-        teamIndex = numberOfTeams - 1;
+      if (teamIndex === formattedTeams.length) {
+        teamIndex = formattedTeams.length - 1;
         direction = -1;
       } else if (teamIndex === -1) {
         teamIndex = 0;
@@ -164,24 +167,24 @@ exports.generateTeamsFromGroup = async (req, res) => {
       }
     }
 
-    // Format teams for storage in GeneratedTeam
-    const formattedTeams = await Promise.all(
-      teams.map(async (teamPlayers, index) => {
+    // Format teams for storage
+    const finalTeams = await Promise.all(
+      formattedTeams.map(async (team) => {
         const teamDoc = new Team({
-          name: `Team ${index + 1}`,
-          players: teamPlayers.map((p) => p._id),
+          name: team.name,
+          players: team.players.map((p) => p._id),
         });
         const savedTeam = await teamDoc.save();
 
-        const totalSkill = teamPlayers.reduce((sum, p) => sum + p.skill, 0);
-        const avgSkill = teamPlayers.length
-          ? (totalSkill / teamPlayers.length).toFixed(2)
+        const totalSkill = team.players.reduce((sum, p) => sum + p.skill, 0);
+        const avgSkill = team.players.length
+          ? (totalSkill / team.players.length).toFixed(2)
           : 0;
 
         return {
           teamId: savedTeam._id,
           teamName: savedTeam.name,
-          players: teamPlayers.map((p) => ({
+          players: team.players.map((p) => ({
             playerId: p._id,
             playerName: p.name,
             skill: p.skill,
@@ -195,7 +198,7 @@ exports.generateTeamsFromGroup = async (req, res) => {
 
     const generatedTeam = new GeneratedTeam({
       title,
-      teams: formattedTeams,
+      teams: finalTeams,
       publicLink,
     });
 

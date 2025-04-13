@@ -10,6 +10,7 @@ import PlayerList from "./components/player/PlayerList";
 import TeamList from "./components/team/TeamList";
 import Navbar from "./components/Navbar";
 import TeamGenerator from "./components/team/TeamGenerator";
+import TeamView from "./components/team/TeamView";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ function App() {
               <Route path="/players/:groupId" element={<PlayerList />} />
               <Route path="/teams" element={<TeamList />} />
               <Route path="/generate/:groupId" element={<TeamGenerator />} />
+              <Route path="/teams/:publicId" element={<TeamView />} />
             </Routes>
           </div>
         </div>

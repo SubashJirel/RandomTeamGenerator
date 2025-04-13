@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { useGenerateTeamsFromGroup } from "../../hooks/useGeneratedTeam";
 import { getPlayersByGroup } from "../../api/playerApi";
 import { useQuery } from "@tanstack/react-query";
+import TeamNameInput from "./TeamNameInput";
 
 function TeamGenerator() {
   const { groupId } = useParams();
@@ -15,18 +16,34 @@ function TeamGenerator() {
     queryFn: () => getPlayersByGroup(groupId),
   });
 
-  const [numberOfTeams, setNumberOfTeams] = useState(2);
   const [title, setTitle] = useState("Match Day Teams");
+  const [teams, setTeams] = useState([{ name: "Team 1" }, { name: "Team 2" }]);
   const [generatedTeams, setGeneratedTeams] = useState(null);
+
+  const handleAddTeam = () => {
+    setTeams([...teams, { name: `Team ${teams.length + 1}` }]);
+  };
+  const handleRemoveTeam = (index) => {
+    if (teams.length > 2) {
+      const newTeams = [...teams];
+      newTeams.splice(index, 1);
+      setTeams(newTeams);
+    }
+  };
+
+  const handleTeamNameChange = (index, name) => {
+    const newTeams = [...teams];
+    newTeams[index].name = name;
+    setTeams(newTeams);
+  };
 
   const handleGenerateTeams = async () => {
     try {
       const result = await generateTeamsMutation.mutateAsync({
         groupId,
-        numberOfTeams,
+        teams: teams.map((t) => ({ name: t.name })),
         title,
       });
-
       setGeneratedTeams(result);
     } catch (error) {
       console.error("Error generating teams:", error);
@@ -58,16 +75,12 @@ function TeamGenerator() {
         </div>
 
         <div>
-          <label className="block text-gray-700 mb-2">Number of Teams</label>
-          <input
-            type="number"
-            min="2"
-            max={players?.length || 2}
-            value={numberOfTeams}
-            onChange={(e) =>
-              setNumberOfTeams(Math.max(2, parseInt(e.target.value) || 2))
-            }
-            className="w-32 p-2 border border-gray-300 rounded-md"
+          <label className="block text-gray-700 mb-2">Teams</label>
+          <TeamNameInput
+            teams={teams}
+            onTeamChange={handleTeamNameChange}
+            onAddTeam={handleAddTeam}
+            onRemoveTeam={handleRemoveTeam}
           />
         </div>
       </div>
