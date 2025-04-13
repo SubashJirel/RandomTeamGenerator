@@ -1,5 +1,5 @@
 const { v4: uuidv4 } = require("uuid");
-const Player = require("../models/players");
+const Player = require("../models/Players");
 
 // Get all players
 exports.getPlayers = async (req, res) => {

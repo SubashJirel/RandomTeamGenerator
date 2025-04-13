@@ -1,5 +1,5 @@
 const GeneratedTeam = require("../models/GeneratedTeam");
-const Player = require("../models/players");
+const Player = require("../models/Players");
 const Team = require("../models/Team");
 const crypto = require("crypto");
 
